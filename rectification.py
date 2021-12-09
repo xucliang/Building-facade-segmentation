@@ -508,18 +508,18 @@ def rectify_image(image, clip_factor, algorithm='independent',
 
         # Find second vanishing point
         vp2 = ransac_vanishing_point(edgelets2, 8000, threshold_inlier=2)
-        edgelets3 = remove_inliers(vp2, edgelets2, 2)
+      #  edgelets3 = remove_inliers(vp2, edgelets2, 2)
 
         # Find second vanishing point
-        vp3 = ransac_vanishing_point(edgelets3, 8000, threshold_inlier=2)
-        edgelets4 = remove_inliers(vp3, edgelets3, 2)
+      #  vp3 = ransac_vanishing_point(edgelets3, 8000, threshold_inlier=2)
+       # edgelets4 = remove_inliers(vp3, edgelets3, 2)
 
     # Find second vanishing point
-        vp4 = ransac_vanishing_point(edgelets4, 8000, threshold_inlier=2)
-        edgelets5 = remove_inliers(vp4, edgelets4, 2)
+      #  vp4 = ransac_vanishing_point(edgelets4, 8000, threshold_inlier=2)
+      #  edgelets5 = remove_inliers(vp4, edgelets4, 2)
 
         # Find second vanishing point
-        vp5 = ransac_vanishing_point(edgelets5, 8000, threshold_inlier=5)
+     #   vp5 = ransac_vanishing_point(edgelets5, 8000, threshold_inlier=5)
        # edgelets6 = remove_inliers(vp5, edgelets5, 10)
 
         # Find second vanishing point
@@ -537,22 +537,23 @@ def rectify_image(image, clip_factor, algorithm='independent',
     warped_img = compute_homography_and_warp(image, vp1, vp2,
                                              clip_factor=clip_factor)
 
-    return warped_img, vp1, vp2, vp3, vp4, vp5
+    return warped_img, vp1, vp2
 
 
 if __name__ == '__main__':
 
 
 
-    image_name = str('D:\\google_streetview-master\\Image-Rectification-master\\22-output.jpg')
+    image_name = str('D:\\google_streetview-master\\Image-Rectification-master\\1-output.jpg')
     image = io.imread(image_name)
    veti = image.shape[0]
+   hori = image.shape[1]
  #   print("Rectifying {}".format(image_name))
 #    save_name = '.'.join(image_name.split('.')[:-1]) + '_warped.png'
     compl=rectify_image(image_name, 6, algorithm='independent')
 #    io.imsave(save_name, compl[0])
- #   vis_model(image, compl[1])
- #   vis_model(image, compl[2])
+   vis_model(image, compl[1])
+   vis_model(image, compl[2])
  #   vis_model(image, compl[3])
  #   vis_model(image, compl[4])
   #  vis_model(image, compl[5])
@@ -560,12 +561,12 @@ if __name__ == '__main__':
 
     edgelets = compute_edgelets(image)
     locations, directions, strengths = edgelets
-    inliers = compute_votes(edgelets,  compl[1], 10) > 0
+    inliers = compute_votes(edgelets,  compl[2], 10) > 0
 
     edgelets = (locations[inliers], directions[inliers], strengths[inliers])
     locations, directions, strengths = edgelets
     vis_edgelets(image, edgelets, False)
-    vp = compl[1]/compl[1][2]
+    vp = compl[2]/compl[2][2]
 
     cory = np.zeros((locations.shape[0], 3))
 
@@ -575,12 +576,14 @@ if __name__ == '__main__':
     yax = [locations[i, 1], vp[1]]
     coefficients = np.polyfit(xax, yax, 1)
     cory[i][0]= (veti - coefficients[1])/coefficients[0]#计算垂直方向消失点所在直线对应的底部坐标
-    cory[i][1]= vp[0]+145/coefficients[0]
-    cory[i][2] = vp[1] + 145
+    cory[i][1] = vp[0] + (30 +np.sign(vp[1])*vp[1])/ coefficients[0]
+    cory[i][2] = (1+np.sign(vp[1]))*vp[1]/2 + 30
+
+
 import pandas as pd
     df=pd.DataFrame(cory)
     df = df.sort_values(by=0, axis=0)
-    df1=df[(df[0]>=0)&(df[0]<=640)]
+    df1=df[(df[0]>=0)&(df[0]<=hori)]
  df1.reset_index(drop=True, inplace=True)
 
  df2 = np.zeros((len(df1[0]), 3))
@@ -603,14 +606,17 @@ import sys
 import cv2
 sys.path.append(r'D:\google_streetview-master\Image-Rectification-master')
 from transform import order_points, perspective_transformation
-image = cv2.imread(str('D:\\google_streetview-master\\Image-Rectification-master\\22-output.jpg'))
+image = cv2.imread(str('D:\\google_streetview-master\\Image-Rectification-master\\1-output.jpg'))
 pts = np.zeros((4, 2), 'float32')
-pts[0] = (df4[1][1],df4[1][2])
-pts[1] =(df4[8][1],df4[8][2])
-pts[2] =(df4[8][0],veti)
-pts[3] =(df4[1][0],veti)
+pts[0] = (df4[11][1],df4[11][2])
+pts[1] =(df4[15][1],df4[15][2])
+pts[2] =(df4[15][0],veti)
+pts[3] =(df4[11][0],veti)
 ##
 warped = perspective_transformation(image,pts)
-cv2.imwrite('D:\\google_streetview-master\\Image-Rectification-master\\22-output_111.jpg',warped)
-# show the original and warped images
+cv2.imwrite('D:\\google_streetview-master\\Image-Rectification-master\\1-output_1121.jpg',warped)
+# show the original and warped images  1 8 11  15  24
+
+
+########################
 
